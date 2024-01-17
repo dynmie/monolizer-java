@@ -66,7 +66,15 @@ public class MonoMain {
         File videoTargetFile = new File(TEMP_FOLDER + "/frames/frame%0d.bmp");
         File framesFolder = videoTargetFile.getParentFile();
         if (!(useCache && framesFolder.exists())) {
-            if (framesFolder.exists()) framesFolder.delete();
+            if (framesFolder.exists()) {
+                String[] list = framesFolder.list();
+                if (list != null) {
+                    for (String s : list) {
+                        File file = new File(framesFolder + File.separator + s);
+                        file.delete();
+                    }
+                }
+            }
             System.out.print("Extracting frames...");
             new FramesExtractor(width, height).extract(sourceFile, videoTargetFile);
             System.out.println(" Done!");
