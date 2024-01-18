@@ -25,6 +25,7 @@ public class MonoMain {
         boolean useCache = false;
         int width = 120;
         int height = 90;
+        File sourceFile = new File(FOLDER + "/source.mp4");
 
         for (String arg : args) {
             useCache = arg.equals("-c");
@@ -37,15 +38,29 @@ public class MonoMain {
                     System.out.println("Invalid resolution.");
                     return;
                 }
-                System.out.println("Resolution set to " + width + "x" + height + ".");
+            }
+            if (arg.startsWith("-s")) {
+                String path = arg.replaceFirst("-s", "");
+                sourceFile = new File(path);
+            }
+            if (arg.startsWith("-h") || arg.startsWith("--help")) {
+                System.out.println("""
+                         Monolizer Help
+                          -c        Allow the use of previous generated frames and audio.
+                          -h        Show this help menu.
+                          -r        Set the frame generation resolution.
+                          -s        Set the source file. If not set, the default source file will be used.""");
+                return;
             }
         }
+
+        System.out.println("Resolution set to " + width + "x" + height + ".");
+        System.out.println("Using source file: " + sourceFile);
 
         if (useCache) {
             System.out.println("Now using the cache.");
         }
 
-        File sourceFile = new File(FOLDER + "/source.mp4");
         if (!sourceFile.exists()) {
             System.out.println("No source file! Double check to see if you have a source video here: " + sourceFile);
             return;
