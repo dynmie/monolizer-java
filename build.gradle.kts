@@ -14,7 +14,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("ws.schild:jave-all-deps:3.4.0")
+    implementation("org.bytedeco:javacv-platform:1.5.10")
 }
 
 tasks {
@@ -22,6 +22,7 @@ tasks {
         useJUnitPlatform()
     }
     jar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         manifest {
             attributes["Main-Class"] = "me.dynmie.monolizer.MonoMain"
         }

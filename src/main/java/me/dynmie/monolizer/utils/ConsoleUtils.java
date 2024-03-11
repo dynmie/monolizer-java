@@ -7,10 +7,13 @@ import me.dynmie.monolizer.MonoMain;
  */
 public class ConsoleUtils {
 
-    public static final char ESC_CODE = 0x1B;
+    public static void setCursorVisibility(boolean visibility) {
+        char val = visibility ? 'h' : 'l';
+        System.out.printf("\033[?25%s", val);
+    }
 
     public static void setCursorPosition(int row, int column) {
-        System.out.printf("%c[%d;%df", ESC_CODE, row, column);
+        System.out.printf("%c[%d;%df", 0x1B, row, column);
     }
 
     public static void resetCursorPosition() {
