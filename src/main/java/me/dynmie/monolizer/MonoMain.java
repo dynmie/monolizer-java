@@ -12,6 +12,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 import javax.sound.sampled.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.Scanner;
@@ -120,6 +121,8 @@ public class MonoMain {
 
             long maxReadAheadBufferMicros = TimeUnit.MILLISECONDS.toMicros(1000);
 
+            PrintWriter writer = new PrintWriter(System.out, false);
+
             long lastTimestamp = -1L;
             while (!Thread.interrupted()) {
                 Frame frame = grabber.grab();
@@ -157,8 +160,8 @@ public class MonoMain {
                             String text = FrameUtils.convertFrameToText(image, col);
 
                             ConsoleUtils.resetCursorPosition();
-                            System.out.append(text);
-                            System.out.flush();
+                            writer.append(text);
+                            writer.flush();
                         });
                     } else if (frame.samples != null) { // if frame is audio frame
                         if (audioLine == null) {
