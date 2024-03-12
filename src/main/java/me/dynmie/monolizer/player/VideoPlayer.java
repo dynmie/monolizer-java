@@ -30,7 +30,7 @@ public class VideoPlayer {
     private final boolean resize;
     private final boolean color;
 
-    private volatile boolean running = true;
+    private volatile boolean running = false;
     private volatile boolean paused;
 
     public VideoPlayer(File source, int width, int height, boolean resize, boolean color) {
@@ -63,6 +63,12 @@ public class VideoPlayer {
     }
 
     public void start() {
+        if (running) {
+            throw new IllegalStateException("This video player is already running!");
+        }
+
+        running = true;
+
         ConsoleUtils.setCursorVisibility(false);
 
         try (
