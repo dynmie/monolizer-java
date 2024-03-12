@@ -3,7 +3,7 @@ package me.dynmie.monolizer;
 import me.dynmie.monolizer.timer.PlaybackTimer;
 import me.dynmie.monolizer.utils.ConsoleUtils;
 import me.dynmie.monolizer.utils.FrameUtils;
-import me.dynmie.monolizer.utils.VideoResizer;
+import org.bytedeco.ffmpeg.global.swscale;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
@@ -32,7 +32,7 @@ public class MonoMain {
     public static void main(String[] args) throws InterruptedException {
         boolean resize = true;
         boolean color = false;
-        int width = 840;
+        int width = 923;
         int height = 680;
         File sourceFile = new File(FOLDER + "/source.mp4");
 
@@ -82,18 +82,21 @@ public class MonoMain {
         System.out.println("Resize: " + (resize ? "Enabled" : "Disabled"));
         System.out.println("Resolution: " + width + "x" + height);
 
-        if (resize) {
-            File outputFile = new File(TEMP_FOLDER + "/output.mp4");
-            VideoResizer.resizeVideo(sourceFile, outputFile, width, height / 2);
-
-            sourceFile = outputFile;
-        }
-
         ConsoleUtils.pause();
         ConsoleUtils.setCursorVisibility(false);
 
-        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(sourceFile)) {
+        try (
+                FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(sourceFile);
+                Java2DFrameConverter converter = new Java2DFrameConverter()
+        ) {
+            if (resize) {
+                grabber.setImageScalingFlags(swscale.SWS_BICUBIC);
+                grabber.setImageWidth(width);
+                grabber.setImageHeight(height / 2);
+            }
+
             grabber.start();
+
 
             PlaybackTimer playbackTimer;
             SourceDataLine audioLine;
@@ -116,14 +119,15 @@ public class MonoMain {
                 playbackTimer = PlaybackTimer.create();
             }
 
-            ExecutorService audioExecutor = Executors.newSingleThreadExecutor();
             ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
+            ExecutorService audioExecutor = Executors.newSingleThreadExecutor();
 
             long maxReadAheadBufferMicros = TimeUnit.MILLISECONDS.toMicros(1000);
 
             PrintWriter writer = new PrintWriter(System.out, false);
 
             long lastTimestamp = -1L;
+
             while (!Thread.interrupted()) {
                 Frame frame = grabber.grab();
                 if (frame == null) break;
@@ -135,55 +139,56 @@ public class MonoMain {
                 lastTimestamp = frame.timestamp;
 
                 // if frame is a video frame
-                try (Java2DFrameConverter converter = new Java2DFrameConverter()) {
-                    if (frame.image != null) {
-                        Frame imageFrame = frame.clone();
-                        final boolean col = color;
-                        imageExecutor.submit(() -> {
-                            // sync video with audio
-                            long delayMicros = imageFrame.timestamp - playbackTimer.elapsedMicros();
+                if (frame.image != null) {
+                    Frame imageFrame = frame.clone();
 
-                            // if video is faster than audio
-                            if (delayMicros > 0) {
-                                // wait for audio to catch up with the video
-                                try {
-                                    Thread.sleep(TimeUnit.MICROSECONDS.toMillis(delayMicros));
-                                } catch (InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                }
+                    final boolean col = color;
+
+                    imageExecutor.submit(() -> {
+                        // sync video with audio
+                        long delayMicros = imageFrame.timestamp - playbackTimer.elapsedMicros();
+
+                        // if video is faster than audio
+                        if (delayMicros > 0) {
+                            // wait for audio to catch up with the video
+                            try {
+                                Thread.sleep(TimeUnit.MICROSECONDS.toMillis(delayMicros));
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
                             }
-
-                            if (delayMicros < 0) return; // we're behind! skip the frame.
-
-                            BufferedImage image = converter.convert(imageFrame);
-                            imageFrame.close();
-                            String text = FrameUtils.convertFrameToText(image, col);
-
-                            ConsoleUtils.resetCursorPosition();
-                            writer.append(text);
-                            writer.flush();
-                        });
-                    } else if (frame.samples != null) { // if frame is audio frame
-                        if (audioLine == null) {
-                            throw new IllegalStateException("audio line was not initialized!");
                         }
 
-                        ShortBuffer sampleShortBuffer = (ShortBuffer) frame.samples[0];
-                        sampleShortBuffer.rewind();
+                        if (delayMicros < 0) return; // we're behind! skip the frame.
 
-                        ByteBuffer outBuffer = ByteBuffer.allocate(sampleShortBuffer.capacity() * 2);
+                        BufferedImage image = converter.convert(imageFrame);
+                        imageFrame.close();
+                        String text = FrameUtils.convertFrameToText(image, col);
 
-                        for (int i = 0; i < sampleShortBuffer.capacity(); i++) {
-                            short val = sampleShortBuffer.get(i);
-                            outBuffer.putShort(val);
-                        }
-
-                        audioExecutor.submit(() -> {
-                            audioLine.write(outBuffer.array(), 0, outBuffer.capacity());
-                            outBuffer.clear();
-                        });
+                        ConsoleUtils.resetCursorPosition();
+                        writer.append(text);
+                        writer.flush();
+                    });
+                } else if (frame.samples != null) { // if frame is audio frame
+                    if (audioLine == null) {
+                        throw new IllegalStateException("audio line was not initialized!");
                     }
+
+                    ShortBuffer sampleShortBuffer = (ShortBuffer) frame.samples[0];
+                    sampleShortBuffer.rewind();
+
+                    ByteBuffer outBuffer = ByteBuffer.allocate(sampleShortBuffer.capacity() * 2);
+
+                    for (int i = 0; i < sampleShortBuffer.capacity(); i++) {
+                        short val = sampleShortBuffer.get(i);
+                        outBuffer.putShort(val);
+                    }
+
+                    audioExecutor.submit(() -> {
+                        audioLine.write(outBuffer.array(), 0, outBuffer.capacity());
+                        outBuffer.clear();
+                    });
                 }
+
 
                 // ensure that the audio doesn't go faster than the video
                 long timeStampDeltaMicros = frame.timestamp - playbackTimer.elapsedMicros();
@@ -194,6 +199,7 @@ public class MonoMain {
 
             grabber.stop();
             grabber.release();
+
             if (audioLine != null) {
                 audioLine.stop();
             }
@@ -208,5 +214,7 @@ public class MonoMain {
         } catch (FrameGrabber.Exception | LineUnavailableException e) {
             throw new RuntimeException(e);
         }
+
     }
+
 }
