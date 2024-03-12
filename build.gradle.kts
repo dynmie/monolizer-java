@@ -14,7 +14,8 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("org.bytedeco:javacv-platform:1.5.10")
+    implementation("org.bytedeco:javacv:1.5.10")
+    implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
 }
 
 tasks {
