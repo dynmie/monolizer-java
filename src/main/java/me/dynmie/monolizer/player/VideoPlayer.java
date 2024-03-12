@@ -31,7 +31,7 @@ public class VideoPlayer {
     private final boolean color;
 
     private volatile boolean running = false;
-    private volatile boolean paused;
+    private volatile boolean paused = false;
 
     public VideoPlayer(File source, int width, int height, boolean resize, boolean color) {
         this.source = source;
@@ -210,6 +210,9 @@ public class VideoPlayer {
         } catch (FrameGrabber.Exception | LineUnavailableException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        running = false;
+        paused = false;
     }
 
 }
