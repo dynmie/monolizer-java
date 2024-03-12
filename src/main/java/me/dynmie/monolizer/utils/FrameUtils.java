@@ -15,19 +15,27 @@ public class FrameUtils {
         StringJoiner joiner = new StringJoiner("\n");
         for (int y = 0; y < image.getHeight(); y++) {
             StringBuilder builder = new StringBuilder();
+            int prevColor = -1;
+
             for (int x = 0; x < image.getWidth(); x++) {
-                if (!color) {
-                    float brightness = RGBUtils.getBrightness(image.getRGB(x, y));
-                    char brightnessChar = BRIGHTNESS_LEVELS[(int) (brightness * (BRIGHTNESS_LEVELS.length - 1))];
-                    builder.append(brightnessChar);
-                } else {
+                int currentColor = image.getRGB(x, y);
+                // some optimizations
+                if (color && currentColor != prevColor) {
                     builder.append(getRGBColoredCharacter(image.getRGB(x, y)));
+                    prevColor = currentColor;
+                } else {
+                    float brightness = RGBUtils.getBrightness(currentColor);
+                    builder.append(getBrightnessCharFromColor(brightness));
                 }
             }
             joiner.add(builder);
         }
 
         return joiner.toString();
+    }
+
+    private static char getBrightnessCharFromColor(float brightness) {
+        return BRIGHTNESS_LEVELS[(int) (brightness * (BRIGHTNESS_LEVELS.length - 1))];
     }
 
     public static String getRGBColoredCharacter(int color) {
