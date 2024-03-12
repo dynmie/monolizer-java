@@ -21,7 +21,7 @@ public class FrameUtils {
                 int currentColor = image.getRGB(x, y);
                 // some optimizations
                 if (color && currentColor != prevColor) {
-                    builder.append(getRGBColoredCharacter(image.getRGB(x, y)));
+                    builder.append(getRGBColoredCharacter(currentColor));
                     prevColor = currentColor;
                 } else {
                     float brightness = RGBUtils.getBrightness(currentColor);
