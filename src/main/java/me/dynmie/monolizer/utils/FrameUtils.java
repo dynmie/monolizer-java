@@ -23,6 +23,9 @@ public class FrameUtils {
                 if (color && currentColor != prevColor) {
                     builder.append(getRGBColoredCharacter(currentColor));
                     prevColor = currentColor;
+                } else if (color) {
+                    float brightness = RGBUtils.getBrightness(currentColor);
+                    builder.append(getRGBBrightnessCharFromColor(brightness));
                 } else {
                     float brightness = RGBUtils.getBrightness(currentColor);
                     builder.append(getBrightnessCharFromColor(brightness));
@@ -38,6 +41,10 @@ public class FrameUtils {
         return BRIGHTNESS_LEVELS[(int) (brightness * (BRIGHTNESS_LEVELS.length - 1))];
     }
 
+    private static char getRGBBrightnessCharFromColor(float brightness) {
+        return BRIGHTNESS_LEVELS[(int) (brightness * (BRIGHTNESS_LEVELS.length - 1))];
+    }
+
     public static String getRGBColoredCharacter(int color) {
         int red   = (color >>> 16) & 0xFF;
         int green = (color >>>  8) & 0xFF;
@@ -46,7 +53,8 @@ public class FrameUtils {
         // calc luminance in range 0.0 to 1.0; using SRGB luminance constants
         float brightness = (red * 0.2126f + green * 0.7152f + blue * 0.0722f) / 255;
 
-        char brightnessChar = BRIGHTNESS_LEVELS[(int) (brightness * (BRIGHTNESS_LEVELS.length - 1))];
+        char brightnessChar = getBrightnessCharFromColor(brightness);
+        if (brightnessChar == ' ') return " ";
 
         return "\033[38;2;%s;%s;%sm%s".formatted(red, green, blue, brightnessChar);
     }

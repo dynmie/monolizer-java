@@ -1,7 +1,6 @@
 package me.dynmie.monolizer;
 
 import me.dynmie.monolizer.player.VideoPlayer;
-import me.dynmie.monolizer.utils.ConsoleUtils;
 
 import java.io.File;
 import java.util.Scanner;
@@ -12,7 +11,6 @@ import java.util.Scanner;
 public class MonoMain {
 
     public static final File FOLDER = new File("monolizer/");
-    public static final File TEMP_FOLDER = new File(FOLDER + File.separator + "temp");
     public static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -69,8 +67,6 @@ public class MonoMain {
         System.out.println("Resolution: " + width + "x" + height);
 
         VideoPlayer player = new VideoPlayer(sourceFile, width, height, resize, color);
-
-        ConsoleUtils.pause();
 
         player.start();
     }
