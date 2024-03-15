@@ -16,6 +16,7 @@ dependencies {
 
     implementation("org.bytedeco:javacv:1.5.10")
     implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
+    implementation("org.jline:jline-terminal-jni:3.25.1")
 }
 
 tasks {

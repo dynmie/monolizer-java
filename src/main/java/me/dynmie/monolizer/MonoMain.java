@@ -1,8 +1,12 @@
 package me.dynmie.monolizer;
 
 import me.dynmie.monolizer.player.VideoPlayer;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -13,18 +17,18 @@ public class MonoMain {
     public static final File FOLDER = new File("monolizer/");
     public static final Scanner SCANNER = new Scanner(System.in);
 
-    public static void main(String[] args) {
-        boolean resize = true;
+    public static void main(String[] args) throws IOException {
+        Terminal terminal = TerminalBuilder.terminal();
+        terminal.puts(InfoCmp.Capability.cursor_invisible);
+        terminal.flush();
+
+        boolean manualResolution = false;
         boolean color = false;
-        int width = 923;
-        int height = 680;
+        int width = terminal.getWidth();
+        int height = terminal.getHeight();
         File sourceFile = new File(FOLDER + "/source.mp4");
 
         for (String arg : args) {
-            if (arg.equals("-c")) {
-                resize = false;
-                continue;
-            }
             if (arg.equals("-l")) {
                 color = true;
                 continue;
@@ -42,6 +46,7 @@ public class MonoMain {
                 }
                 width = w;
                 height = h;
+                manualResolution = true;
                 continue;
             }
             if (arg.startsWith("-s")) {
@@ -52,7 +57,6 @@ public class MonoMain {
             if (arg.startsWith("-h") || arg.startsWith("--help")) {
                 System.out.println("""
                         Monolizer Help
-                         -c        Do not resize the video.
                          -l        Enable video colors. (SLOW)
                          -h        Show this help menu.
                          -r        Set the frame generation resolution.
@@ -63,12 +67,29 @@ public class MonoMain {
 
         System.out.println("Using source file: " + sourceFile);
         System.out.println("Colors: " + (color ? "Enabled" : "Disabled"));
-        System.out.println("Resize: " + (resize ? "Enabled" : "Disabled"));
-        System.out.println("Resolution: " + width + "x" + height);
+        System.out.println("Manual Resolution: " + (manualResolution ? "Enabled" : "Disabled"));
+        System.out.println("Current Resolution: " + width + "x" + height);
 
-        VideoPlayer player = new VideoPlayer(sourceFile, width, height, resize, color);
+        VideoPlayer player = new VideoPlayer(terminal.output(), sourceFile, width, height, manualResolution, color);
+
+        if (!manualResolution) {
+            Terminal.SignalHandler signalHandler = signal -> {
+                if (signal == Terminal.Signal.WINCH) {
+                    player.setResolution(terminal.getWidth(), terminal.getHeight());
+                }
+            };
+
+            terminal.handle(Terminal.Signal.WINCH, signalHandler);
+        }
 
         player.start();
+        try {
+            player.awaitFinish();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        terminal.close();
     }
 
 }
