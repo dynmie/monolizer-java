@@ -28,7 +28,7 @@ Hollow Hunger - Ironmouse @ 1:05 with dithering enabled
 
 ![Hollow hunger with dithering disabled](https://github.com/dynmie/monolizer-java/assets/41315732/e3c24557-5e17-46d7-8cf7-b9a9348cf80c)
 
-Hollow Hunger - Ironmouse @ 1:05 with dithering enabled
+Hollow Hunger - Ironmouse @ 1:05 with dithering disabled
 
 ![Dithering enabled](https://github.com/dynmie/monolizer-java/assets/41315732/016ee90d-72f4-485b-8213-3624020f743b)
 
