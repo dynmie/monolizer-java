@@ -1,9 +1,9 @@
 # Monolizer
 A Java program to allow video playback on the command line.
 
-<div align="left"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/dynmie/monolizer-java?style=for-the-badge"> <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/dynmie/monolizer-java/gradle.yml?branch=master&logo=github&style=for-the-badge"></div>
-
 An old video can be found here: https://www.youtube.com/watch?v=9XG8wZvWSpc
+
+<div align="left"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/dynmie/monolizer-java?style=for-the-badge"> <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/dynmie/monolizer-java/gradle.yml?branch=master&logo=github&style=for-the-badge"></div>
 
 ### Notable features
 - Instant video playback
