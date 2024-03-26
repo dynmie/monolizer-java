@@ -1,5 +1,5 @@
 # Monolizer
-<div align="center"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/dynmie/monolizer-java?style=for-the-badge"> <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/dynmie/monolizer-java/gradle.yml?branch=master&logo=github&style=for-the-badge"></div>
+<div align="left"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/dynmie/monolizer-java?style=for-the-badge"> <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/dynmie/monolizer-java/gradle.yml?branch=master&logo=github&style=for-the-badge"></div>
 
 
 A Java program to allow video playback on the command line.
