@@ -17,7 +17,7 @@ An older demonstration without instant video playback can be found [here](https:
 ### What doesn't work?
 - Pausing a video without audio doesn't work
 
-### Controls
+## Controls
 Space: Play/pause
 
 C - Toggle colours
