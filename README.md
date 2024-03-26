@@ -14,6 +14,9 @@ An older demonstration without instant video playback can be found [here](https:
 - Floyd-Steinberg grayscale dithering
 - Auto resizing terminal window
 
+### What doesn't work?
+- Pausing a video without audio doesn't work
+
 ### Controls
 Space: Play/pause
 
@@ -42,7 +45,7 @@ Hollow Hunger - Ironmouse @ 2:50 with dithering enabled
 
 Telecaster b boy (long ver.) - Kanata Amane @ 0:26 with full pixel and color enabled
 
-## Getting started
+# Getting started
 ### Prerequisites
 - [Java 21 JRE](https://adoptium.net/temurin/releases/?version=21)
 - [MongoDB](https://www.mongodb.com/try/download/community)
