@@ -1,15 +1,17 @@
 # Monolizer
 A Java program to allow video playback on the command line.
 
-An old video can be found here: https://www.youtube.com/watch?v=9XG8wZvWSpc
+A demonstration can be found [here](https://youtu.be/DjXgTmQYoMc). (Note that this isn't Monolizer but Mono, another project I'm working on)
+
+An older demonstration without instant video playback can be found [here](https://www.youtube.com/watch?v=9XG8wZvWSpc).
 
 <div align="left"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/dynmie/monolizer-java?style=for-the-badge"> <img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/dynmie/monolizer-java/gradle.yml?branch=master&logo=github&style=for-the-badge"></div>
 
 ### Notable features
-- Instant video playback
 - Colored video output
+- Instant video playback
 - Full pixel video support
-- Floyd-Steinberg text dithering
+- Floyd-Steinberg grayscale dithering
 - Auto resizing terminal window
 
 ### Controls
@@ -38,7 +40,7 @@ Hollow Hunger - Ironmouse @ 2:50 with dithering enabled
 
 ![full pixel](https://github.com/dynmie/monolizer-java/assets/41315732/213d43ac-94cf-4e7b-ab7e-0c0b365b3f0b)
 
-Telecaster b boy (long ver.) - Kanata Amane @ 0:26 with full pixel enabled
+Telecaster b boy (long ver.) - Kanata Amane @ 0:26 with full pixel and color enabled
 
 ## Getting started
 ### Prerequisites
