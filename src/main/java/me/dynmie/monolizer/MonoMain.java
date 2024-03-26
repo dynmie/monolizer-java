@@ -1,9 +1,11 @@
 package me.dynmie.monolizer;
 
+import me.dynmie.monolizer.player.Asciifier;
 import me.dynmie.monolizer.player.VideoPlayer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
+import org.jline.utils.NonBlockingReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,82 +16,105 @@ import java.util.Scanner;
  */
 public class MonoMain {
 
-    public static final File FOLDER = new File("monolizer/");
-    public static final Scanner SCANNER = new Scanner(System.in);
-
     public static void main(String[] args) throws IOException {
         Terminal terminal = TerminalBuilder.terminal();
+
+        File sourceFile = new File("source.mp4");
+
+        if (args.length > 0) {
+            String path = String.join(" ", args);
+            sourceFile = new File(path);
+        }
+
+        if (!sourceFile.exists()) {
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.print("Enter source file: ");
+            String path = scanner.nextLine();
+
+            if (path.isEmpty()) {
+                System.out.println("That video doesn't exist!");
+                return;
+            }
+            sourceFile = new File(path);
+        }
+
+        if (!sourceFile.exists()) {
+            System.out.println("That video doesn't exist!");
+            return;
+        }
+
         terminal.puts(InfoCmp.Capability.cursor_invisible);
         terminal.flush();
 
-        boolean manualResolution = false;
-        boolean color = false;
         int width = terminal.getWidth();
         int height = terminal.getHeight();
-        File sourceFile = new File(FOLDER + "/source.mp4");
 
-        for (String arg : args) {
-            if (arg.equals("-l")) {
-                color = true;
-                continue;
+        NonBlockingReader reader = terminal.reader();
+
+        VideoPlayer player = new VideoPlayer(System.out, sourceFile, width, height, new Asciifier(
+                false,
+                false,
+                true,
+                Asciifier.DEFAULT_BRIGHTNESS_LEVELS
+        ));
+
+        terminal.handle(Terminal.Signal.WINCH, signal -> {
+            if (signal == Terminal.Signal.WINCH) {
+                player.setResolution(terminal.getWidth(), terminal.getHeight());
             }
-            if (arg.startsWith("-r")) {
-                String[] split = arg.replaceFirst("-r", "").split("x");
-                int w;
-                int h;
-                try {
-                    w = Integer.parseInt(split[0]);
-                    h = Integer.parseInt(split[1]);
-                } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                    System.out.println("Invalid resolution specified.");
-                    return;
-                }
-                width = w;
-                height = h;
-                manualResolution = true;
-                continue;
-            }
-            if (arg.startsWith("-s")) {
-                String path = arg.replaceFirst("-s", "");
-                sourceFile = new File(path);
-                continue;
-            }
-            if (arg.startsWith("-h") || arg.startsWith("--help")) {
-                System.out.println("""
-                        Monolizer Help
-                         -l        Enable video colors. (SLOW)
-                         -h        Show this help menu.
-                         -r        Set the frame generation resolution.
-                         -s        Set the source file. If not set, the default source file will be used.""");
-                return;
-            }
-        }
-
-        System.out.println("Using source file: " + sourceFile);
-        System.out.println("Colors: " + (color ? "Enabled" : "Disabled"));
-        System.out.println("Manual Resolution: " + (manualResolution ? "Enabled" : "Disabled"));
-        System.out.println("Current Resolution: " + width + "x" + height);
-
-        VideoPlayer player = new VideoPlayer(terminal.output(), sourceFile, width, height, manualResolution, color);
-
-        if (!manualResolution) {
-            Terminal.SignalHandler signalHandler = signal -> {
-                if (signal == Terminal.Signal.WINCH) {
-                    player.setResolution(terminal.getWidth(), terminal.getHeight());
-                }
-            };
-
-            terminal.handle(Terminal.Signal.WINCH, signalHandler);
-        }
+        });
 
         player.start();
-        try {
-            player.awaitFinish();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+        while (player.isRunning()) {
+            int read = reader.read();
+            char character = (char) read;
+
+            switch (character) {
+                case 'c' -> {
+                    Asciifier old = player.getAsciifier();
+                    player.setAsciifier(new Asciifier(
+                            !old.isColor(),
+                            old.isFullPixel(),
+                            old.isTextDithering(),
+                            colorThen(!old.isColor())
+                    ));
+                }
+                case 'd' -> {
+                    Asciifier old = player.getAsciifier();
+                    player.setAsciifier(new Asciifier(
+                            old.isColor(),
+                            old.isFullPixel(),
+                            !old.isTextDithering(),
+                            colorThen(old.isColor())
+                    ));
+                }
+                case 'f' -> {
+                    Asciifier old = player.getAsciifier();
+                    player.setAsciifier(new Asciifier(
+                            old.isColor(),
+                            !old.isFullPixel(),
+                            old.isTextDithering(),
+                            colorThen(old.isColor())
+                    ));
+                }
+                case ' ' -> {
+                    if (player.isPaused()) {
+                        player.play();
+                    } else {
+                        player.pause();
+                    }
+                }
+                case 'q' -> player.stop();
+            }
         }
 
         terminal.close();
+    }
+
+    private static char[] colorThen(boolean color) {
+        return color ? Asciifier.DEFAULT_COLOR_BRIGHTNESS_LEVELS : Asciifier.DEFAULT_BRIGHTNESS_LEVELS;
     }
 
 }
