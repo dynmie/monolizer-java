@@ -183,7 +183,8 @@ public class VideoPlayer {
                         String prefix = "";
                         if (!asciifier.isColor()) {
                             prefix += ConsoleUtils.getForegroundResetCode();
-                        } else if (!asciifier.isFullPixel()) {
+                        }
+                        if (!asciifier.isFullPixel()) {
                             prefix += ConsoleUtils.getBackgroundResetCode();
                         }
 
