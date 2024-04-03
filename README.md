@@ -67,7 +67,7 @@ git clone https://github.com/dynmie/monolizer-java.git
 ### Compiling
 Windows:
 ```cmd
-.\gradlew jar
+.\gradlew.bat jar
 ```
 
 GNU Linux:
