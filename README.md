@@ -37,10 +37,6 @@ Hollow Hunger - Ironmouse @ 1:05 with dithering enabled
 
 Hollow Hunger - Ironmouse @ 1:05 with dithering disabled
 
-![Dithering enabled](https://github.com/dynmie/monolizer-java/assets/41315732/016ee90d-72f4-485b-8213-3624020f743b)
-
-Hollow Hunger - Ironmouse @ 2:50 with dithering enabled
-
 ![full pixel](https://github.com/dynmie/monolizer-java/assets/41315732/213d43ac-94cf-4e7b-ab7e-0c0b365b3f0b)
 
 Telecaster b boy (long ver.) - Kanata Amane @ 0:26 with full pixel and color enabled
