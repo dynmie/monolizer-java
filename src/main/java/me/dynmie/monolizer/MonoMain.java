@@ -1,6 +1,7 @@
 package me.dynmie.monolizer;
 
 import me.dynmie.monolizer.player.Asciifier;
+import me.dynmie.monolizer.player.ScanType;
 import me.dynmie.monolizer.player.VideoPlayer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -17,6 +18,11 @@ import java.util.Scanner;
 public class MonoMain {
 
     public static void main(String[] args) throws IOException {
+//        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(FileDescriptor.out), 1080 * 720 * 22);
+//
+//        PrintStream ps = new PrintStream(bos, false, "CP437"); // autoFlush = true
+//        System.setOut(ps);
+
         Terminal terminal = TerminalBuilder.terminal();
 
         File sourceFile = new File("source.mp4");
@@ -52,7 +58,7 @@ public class MonoMain {
 
         NonBlockingReader reader = terminal.reader();
 
-        VideoPlayer player = new VideoPlayer(System.out, sourceFile, width, height, new Asciifier(
+        VideoPlayer player = new VideoPlayer(System.out, sourceFile, width, height, ScanType.PROGRESSIVE, new Asciifier(
                 false,
                 false,
                 true,
@@ -106,6 +112,7 @@ public class MonoMain {
                         player.pause();
                     }
                 }
+                case 'i' -> player.setScanType(player.getScanType().next());
                 case 'q' -> player.stop();
             }
         }

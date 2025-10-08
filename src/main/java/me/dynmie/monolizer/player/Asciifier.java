@@ -34,7 +34,7 @@ public class Asciifier {
         this.brightnessLevels = brightnessLevels;
     }
 
-    public String createFrame(BufferedImage image) {
+    public String[] createFrame(BufferedImage image) {
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -50,6 +50,7 @@ public class Asciifier {
                         int currentColor = image.getRGB(x, y);
 
                         boolean almostSameColor = isAlmostSameColor(currentColor, prevColor);
+//                        boolean almostSameColor = false;
 
                         String pixel = createPixel(width, height, x, y, currentColor, almostSameColor, textDitheringErrors);
                         builder.append(pixel);
@@ -61,7 +62,7 @@ public class Asciifier {
 
                     lines[y] = builder.toString();
                 });
-        return String.join("\n", lines);
+        return lines;
     }
 
     private String createPixel(int width, int height, int x, int y, int currentColor, boolean almostSameColor, float[][] textDitheringErrors) {

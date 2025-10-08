@@ -27,6 +27,7 @@ public class VideoPlayer {
     private final File source;
     private volatile int width;
     private volatile int height;
+    private volatile ScanType scanType;
     private volatile Asciifier asciifier;
 
     private volatile boolean running = false;
@@ -34,12 +35,24 @@ public class VideoPlayer {
 
     private Thread thread;
 
-    public VideoPlayer(OutputStream outputStream, File source, int width, int height, Asciifier asciifier) {
+    private long frameCount = 0;
+    private long lastFrameWriteDelayMicros = 0;
+
+    public VideoPlayer(OutputStream outputStream, File source, int width, int height, ScanType scanType, Asciifier asciifier) {
         this.outputStream = outputStream;
         this.source = source;
         this.width = width;
         this.height = height;
+        this.scanType = scanType;
         this.asciifier = asciifier;
+    }
+
+    public ScanType getScanType() {
+        return scanType;
+    }
+
+    public void setScanType(ScanType scanType) {
+        this.scanType = scanType;
     }
 
     public void setResolution(int width, int height) {
@@ -180,15 +193,9 @@ public class VideoPlayer {
                         BufferedImage image = converter.convert(imageFrame);
                         imageFrame.close();
 
-                        String prefix = "";
-                        if (!asciifier.isColor()) {
-                            prefix += ConsoleUtils.getForegroundResetCode();
-                        }
-                        if (!asciifier.isFullPixel()) {
-                            prefix += ConsoleUtils.getBackgroundResetCode();
-                        }
 
-                        String text = prefix + ConsoleUtils.getResetCursorPositionEscapeCode() + asciifier.createFrame(image);
+
+                        String[] text = asciifier.createFrame(image) ;
 
                         atomicQueueSize.incrementAndGet();
                         imageExecutor.submit(() -> {
@@ -203,7 +210,7 @@ public class VideoPlayer {
                             if (delayMicros < 0 && queueSize > 1) return; // we're behind! skip the frame.
 
                             // recalculate delta
-                            delayMicros = imageFrame.timestamp - playbackTimer.elapsedMicros();
+                            delayMicros = imageFrame.timestamp - playbackTimer.elapsedMicros() - lastFrameWriteDelayMicros;
                             // if video is faster than audio
                             if (delayMicros > 0) {
                                 // wait for audio to catch up with the video
@@ -228,8 +235,25 @@ public class VideoPlayer {
                                 }
                             }
 
-                            writer.write(text);
-                            writer.flush();
+                            long startTime = System.nanoTime();
+
+                            String prefix = "";
+                            if (!asciifier.isColor()) {
+                                prefix += ConsoleUtils.getForegroundResetCode();
+                            }
+                            if (!asciifier.isFullPixel()) {
+                                prefix += ConsoleUtils.getBackgroundResetCode();
+                            }
+
+                            writer.write(prefix + ConsoleUtils.getResetCursorPositionEscapeCode());
+
+                            writeFrame(writer, text);
+
+                            long endTime = System.nanoTime();
+
+                            lastFrameWriteDelayMicros = TimeUnit.NANOSECONDS.toMicros(endTime - startTime);
+
+                            frameCount++;
                         });
                     });
                 } else if (frame.samples != null) { // if frame is audio frame
@@ -301,6 +325,50 @@ public class VideoPlayer {
 
         running = false;
         paused = false;
+    }
+
+    private void writeFrame(PrintWriter writer, String[] frame) {
+        switch (scanType) {
+            case INTERLACED -> writeInterlaced(writer, frame, false);
+            case INTERLACED_NO_PREV -> writeInterlaced(writer, frame, true);
+            case PROGRESSIVE -> writeProgressive(writer, frame);
+            default -> throw new IllegalStateException("Unexpected value: " + scanType);
+        }
+    }
+
+    private void writeInterlaced(PrintWriter writer, String[] frame, boolean clearPrevious) {
+        boolean even = (frameCount % 2) == 0;
+
+        for (int i = 0; i < frame.length; i++) {
+            boolean lineEven = (i % 2 == 0);
+
+            boolean shouldNewLine = !((i + 1) % frame.length == 0);
+
+            if (even == lineEven) {
+                writer.write(frame[i]);
+                if (shouldNewLine) {
+                    writer.write("\n");
+                }
+            } else if (shouldNewLine) {
+                if (!clearPrevious) {
+                    writer.write("\033[B");
+                } else {
+                    writer.write(ConsoleUtils.getBackgroundResetCode() + "\033[2K\n");
+                }
+            }
+        }
+
+        writer.flush();
+    }
+
+    private void writeProgressive(PrintWriter writer, String[] frame) {
+        for (int i = 0; i < frame.length; i++) {
+            writer.write(frame[i]);
+            if (!((i + 1) % frame.length == 0)) {
+                writer.write("\n");
+            }
+        }
+        writer.flush();
     }
 
     private void createThread() {
