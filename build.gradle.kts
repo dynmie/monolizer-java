@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.4.3"
 }
 
 group = "me.dynmie.monolizer"
@@ -11,12 +11,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation(platform("org.junit:junit-bom:5.12.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("org.bytedeco:javacv:1.5.10")
-    implementation("org.bytedeco:ffmpeg-platform:6.1.1-1.5.10")
-    implementation("org.jline:jline-terminal-jni:3.25.1")
+    implementation("org.bytedeco:javacv:1.5.13")
+    implementation("org.bytedeco:ffmpeg-platform:8.0.1-1.5.13")
+    implementation("org.jline:jline-terminal-jni:3.30.15")
 }
 
 tasks {
